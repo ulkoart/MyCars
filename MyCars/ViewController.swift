@@ -21,7 +21,17 @@ class ViewController: UIViewController {
         return df
     }()
     
-    @IBOutlet weak var segmentedControl: UISegmentedControl!
+    @IBOutlet weak var segmentedControl: UISegmentedControl! {
+        didSet {
+            updateSegmentedControl()
+            segmentedControl.selectedSegmentTintColor = .white
+            let whiteTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+            let blackTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
+            
+            UISegmentedControl.appearance().setTitleTextAttributes(whiteTitleTextAttributes, for: .normal)
+            UISegmentedControl.appearance().setTitleTextAttributes(blackTitleTextAttributes, for: .selected)
+        }
+    }
     @IBOutlet weak var markLabel: UILabel!
     @IBOutlet weak var modelLabel: UILabel!
     @IBOutlet weak var carImageView: UIImageView!
@@ -31,7 +41,21 @@ class ViewController: UIViewController {
     @IBOutlet weak var myChoiceImageView: UIImageView!
     
     @IBAction func segmentedCtrlPressed(_ sender: UISegmentedControl) {
+        updateSegmentedControl()
+    }
+    
+    private func updateSegmentedControl() {
+        let fetchRequest: NSFetchRequest<Car> = Car.fetchRequest()
+        let mark = segmentedControl.titleForSegment(at: segmentedControl.selectedSegmentIndex)
+        fetchRequest.predicate = NSPredicate(format: "mark == %@", mark!)
         
+        do {
+            let results = try context.fetch(fetchRequest)
+            car = results.first
+            insertDataFrom(selectedCar: car!)
+        } catch let error as NSError {
+            print(error.localizedDescription)
+        }
     }
     
     @IBAction func startEnginePressed(_ sender: UIButton) {
@@ -91,7 +115,7 @@ class ViewController: UIViewController {
         numberOfTripsLabel.text = "Number of trips: \(car.timesDriven)"
         
         lastTimeStartedLabel.text = "Last time started: \(dateFormater.string(from: car.lastStarted!))"
-       
+        
         segmentedControl.backgroundColor = car.tintColor as? UIColor
         
     }
@@ -104,7 +128,7 @@ class ViewController: UIViewController {
         
         do {
             records = try context.count(for: fetchRequest)
-            print ("IS Data there already?")
+            print ("IS Data there already? - \(records)")
         } catch let error as NSError {
             print (error.localizedDescription)
         }
@@ -134,6 +158,13 @@ class ViewController: UIViewController {
             if let colorDictionary = carDictionary["tintColor"] as? [String: Float] {
                 car.tintColor = getColor(colorDictionary: colorDictionary)
             }
+            
+        }
+        
+        do {
+            try context.save()
+        } catch let error as NSError {
+            print(error.localizedDescription)
         }
     }
     
@@ -158,17 +189,7 @@ class ViewController: UIViewController {
         //            defaults.set(true, forKey: "AlreadyUsed")
         //        }
         
-        let fetchRequest: NSFetchRequest<Car> = Car.fetchRequest()
-        let mark = segmentedControl.titleForSegment(at: 0)
-        fetchRequest.predicate = NSPredicate(format: "mark == %@", mark!)
         
-        do {
-            let results = try context.fetch(fetchRequest)
-            car = results.first
-            insertDataFrom(selectedCar: car!)
-        } catch let error as NSError {
-            print(error.localizedDescription)
-        }
         
     }
 }
