@@ -45,6 +45,9 @@ class ViewController: UIViewController {
     }
     
     private func updateSegmentedControl() {
+        
+        getDataFromFile() // ???
+        
         let fetchRequest: NSFetchRequest<Car> = Car.fetchRequest()
         let mark = segmentedControl.titleForSegment(at: segmentedControl.selectedSegmentIndex)
         fetchRequest.predicate = NSPredicate(format: "mark == %@", mark!)
@@ -134,6 +137,7 @@ class ViewController: UIViewController {
         }
         
         guard records == 0 else { return }
+        print("load from file")
         
         guard let pathToFile = Bundle.main.path(forResource: "data", ofType: "plist"),
             let dataArray = NSArray(contentsOfFile: pathToFile) else { return }
